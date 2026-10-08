@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grúas Express 24/7 - Servicio de Grúas Profesional</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root{
+    --primary:#FFC107;
+    --primary-dark:#E0A800;
+    --dark:#1a1a1a;
+    --dark-2:#2a2a2a;
+    --light:#f5f5f5;
+    --gray:#666;
+    --success:#28a745;
+    --danger:#dc3545;
+    --shadow:0 10px 30px rgba(0,0,0,.15);
+    --radius:12px;
+    --transition:all .3s ease;
+  }
+  [data-theme="dark"]{
+    --light:#121212;
+    --dark:#f5f5f5;
+    --dark-2:#1e1e1e;
+    --gray:#aaa;
+    --shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+  html{scroll-behavior:smooth}
+  body{background:var(--light);color:var(--dark);transition:var(--transition);overflow-x:hidden}
+  
+  /* HEADER */
+  header{
+    position:fixed;top:0;left:0;width:100%;z-index:1000;
+    background:rgba(26,26,26,.95);backdrop-filter:blur(10px);
+    padding:15px 5%;display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 2px 20px rgba(0,0,0,.3);transition:var(--transition);
+  }
+  .logo{display:flex;align-items:center;gap:10px;color:var(--primary);font-size:1.6rem;font-weight:bold}
+  .logo span{font-size:2rem;animation:shake 3s infinite}
+  @keyframes shake{0%,90%,100%{transform:rotate(0)}92%{transform:rotate(-10deg)}94%{transform:rotate(10deg)}96%{transform:rotate(-10deg)}98%{transform:rotate(10deg)}}
+  nav ul{display:flex;list-style:none;gap:30px}
+  nav a{color:#fff;text-decoration:none;font-weight:500;transition:var(--transition);position:relative}
+  nav a:hover{color:var(--primary)}
+  nav a::after{content:'';position:absolute;bottom:-5px;left:0;width:0;height:2px;background:var(--primary);transition:var(--transition)}
+  nav a:hover::after{width:100%}
+  .header-actions{display:flex;gap:15px;align-items:center}
+  .btn{
+    padding:10px 22px;border:none;border-radius:50px;cursor:pointer;
+    font-weight:600;transition:var(--transition);font-size:.95rem;
+    display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  }
+  .btn-primary{background:var(--primary);color:var(--dark)}
+  .btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 5px 15px rgba(255,193,7,.4)}
+  .btn-outline{background:transparent;color:#fff;border:2px solid var(--primary)}
+  .btn-outline:hover{background:var(--primary);color:var(--dark)}
+  .theme-toggle{background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;padding:8px;border-radius:50%;transition:var(--transition)}
+  .theme-toggle:hover{background:rgba(255,255,255,.1)}
+  .menu-toggle{display:none;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer}
+  
+  /* HERO */
+  .hero{
+    min-height:100vh;display:flex;align-items:center;padding:100px 5% 50px;
+    background:linear-gradient(135deg,rgba(26,26,26,.85),rgba(26,26,26,.7)),
+      url('https://images.unsplash.com/photo-1591991731833-b4807cf7ef94?w=1600&q=80') center/cover fixed;
+    color:#fff;position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background:radial-gradient(circle at 20% 50%,rgba(255,193,7,.15) 0%,transparent 50%);
+  }
+  .hero-content{max-width:650px;position:relative;z-index:2;animation:fadeInUp 1s ease}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  .hero-badge{
+    display:inline-block;background:var(--primary);color:var(--dark);
+    padding:6px 16px;border-radius:50px;font-weight:bold;font-size:.85rem;margin-bottom:20px;
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,193,7,.7)}50%{box-shadow:0 0 0 15px rgba(255,193,7,0)}}
+  .hero h1{font-size:3.5rem;line-height:1.1;margin-bottom:20px}
+  .hero h1 span{color:var(--primary)}
+  .hero p{font-size:1.2rem;margin-bottom:30px;opacity:.9}
+  .hero-buttons{display:flex;gap:15px;flex-wrap:wrap}
+  .hero-stats{display:flex;gap:40px;margin-top:50px;flex-wrap:wrap}
+  .stat{text-align:center}
+  .stat h3{font-size:2.5rem;color:var(--primary);font-weight:bold}
+  .stat p{font-size:.9rem;opacity:.8}
+  
+  /* SECTIONS */
+  section{padding:80px 5%}
+  .section-title{text-align:center;margin-bottom:60px}
+  .section-title h2{font-size:2.5rem;margin-bottom:15px;position:relative;display:inline-block}
+  .section-title h2::after{
+    content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+    width:60px;height:4px;background:var(--primary);border-radius:2px;
+  }
+  .section-title p{color:var(--gray);font-size:1.1rem;max-width:600px;margin:20px auto 0}
+  
+  /* SERVICIOS CON IMAGEN */
+  .services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px;max-width:1200px;margin:0 auto}
+  .service-card{
+    background:var(--dark-2);border-radius:var(--radius);
+    transition:var(--transition);cursor:pointer;
+    overflow:hidden;position:relative;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+  }
+  [data-theme="dark"] .service-card{background:#1e1e1e;color:#fff}
+  .service-card:hover{transform:translateY(-10px);box-shadow:var(--shadow)}
+  .service-image{
+    width:100%;height:200px;overflow:hidden;position:relative;
+  }
+  .service-image img{
+    width:100%;height:100%;object-fit:cover;
+    transition:transform .5s ease;
+  }
+  .service-card:hover .service-image img{transform:scale(1.1)}
+  .service-image::after{
+    content:'';position:absolute;bottom:0;left:0;width:100%;height:50%;
+    background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
+  }
+  .service-badge{
+    position:absolute;top:15px;right:15px;background:var(--primary);
+    color:var(--dark);padding:5px 12px;border-radius:50px;font-size:.8rem;font-weight:bold;
+    z-index:2;
+  }
+  .service-content{padding:25px}
+  .service-icon{
+    width:60px;height:60px;background:var(--primary);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.8rem;margin:-55px auto 15px;position:relative;z-index:2;
+    border:4px solid var(--dark-2);transition:var(--transition);
+  }
+  .service-card:hover .service-icon{transform:rotate(360deg) scale(1.1)}
+  .service-content h3{font-size:1.3rem;margin-bottom:12px;text-align:center}
+  .service-content p{color:var(--gray);line-height:1.6;text-align:center;font-size:.95rem}
+  .service-price{
+    margin-top:20px;font-size:1.3rem;color:var(--primary);font-weight:bold;
+    text-align:center;padding-top:15px;border-top:1px solid rgba(255,255,255,.1);
+  }
+  
+  /* SOBRE NOSOTROS */
+  .about-section{background:var(--dark-2)}
+  [data-theme="dark"] .about-section{background:#0a0a0a}
+  .about-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+    max-width:1200px;margin:0 auto;
+  }
+  .about-images{position:relative;height:500px}
+  .about-img-main{
+    width:80%;height:400px;border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);position:absolute;top:0;left:0;
+  }
+  .about-img-main img{width:100%;height:100%;object-fit:cover}
+  .about-img-secondary{
+    width:55%;height:250px;border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);position:absolute;bottom:0;right:0;
+    border:5px solid var(--dark-2);
+  }
+  .about-img-secondary img{width:100%;height:100%;object-fit:cover}
+  .about-experience{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:var(--primary);color:var(--dark);padding:25px;border-radius:var(--radius);
+    text-align:center;box-shadow:var(--shadow);z-index:3;
+  }
+  .about-experience h3{font-size:3rem;font-weight:bold;line-height:1}
+  .about-experience p{font-size:.9rem;font-weight:600}
+  .about-text h2{font-size:2.3rem;margin-bottom:20px;line-height:1.2}
+  .about-text h2 span{color:var(--primary)}
+  .about-text > p{color:var(--gray);line-height:1.8;margin-bottom:25px;font-size:1.05rem}
+  .about-features{list-style:none;margin-bottom:30px}
+  .about-features li{
+    display:flex;align-items:center;gap:12px;padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,.05);
+  }
+  .about-features li::before{
+    content:'✓';background:var(--primary);color:var(--dark);
+    width:28px;height:28px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;
+  }
+  
+  /* GALERÍA */
+  .gallery-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:15px;max-width:1200px;margin:0 auto;
+  }
+  .gallery-item{
+    position:relative;height:250px;border-radius:var(--radius);
+    overflow:hidden;cursor:pointer;
+  }
+  .gallery-item img{
+    width:100%;height:100%;object-fit:cover;
+    transition:transform .5s ease;
+  }
+  .gallery-item:hover img{transform:scale(1.15)}
+  .gallery-overlay{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    background:linear-gradient(to top,rgba(0,0,0,.8),transparent 60%);
+    display:flex;align-items:flex-end;padding:20px;
+    opacity:0;transition:var(--transition);
+  }
+  .gallery-item:hover .gallery-overlay{opacity:1}
+  .gallery-overlay h4{color:#fff;font-size:1.1rem}
+  .gallery-overlay p{color:var(--primary);font-size:.85rem;margin-top:5px}
+  .gallery-item.large{grid-column:span 2;grid-row:span 2;height:515px}
+  
+  /* CALCULADORA */
+  .calculator{
+    background:linear-gradient(135deg,var(--dark),var(--dark-2));
+    color:#fff;border-radius:var(--radius);padding:50px;max-width:1000px;margin:0 auto;
+    box-shadow:var(--shadow);
+  }
+  .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .form-group{margin-bottom:20px}
+  .form-group label{display:block;margin-bottom:8px;font-weight:500;color:#fff}
+  .form-group input,.form-group select,.form-group textarea{
+    width:100%;padding:12px 15px;border:2px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.05);border-radius:8px;color:#fff;
+    font-size:1rem;transition:var(--transition);
+  }
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+    outline:none;border-color:var(--primary);background:rgba(255,255,255,.1);
+  }
+  .form-group select option{background:var(--dark);color:#fff}
+  .quote-result{
+    background:rgba(255,193,7,.1);border:2px solid var(--primary);
+    border-radius:var(--radius);padding:30px;text-align:center;
+  }
+  .quote-result h3{color:var(--primary);margin-bottom:15px;font-size:1.3rem}
+  .quote-price{font-size:3rem;font-weight:bold;color:var(--primary);margin:15px 0}
+  .quote-details{margin:20px 0;text-align:left}
+  .quote-details div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+  
+  /* MAPA */
+  .map-section{background:var(--dark-2)}
+  [data-theme="dark"] .map-section{background:#0a0a0a}
+  .map-section .section-title h2,.map-section .section-title p{color:#fff}
+  .map-container{
+    max-width:1200px;margin:0 auto;display:grid;
+    grid-template-columns:1fr 350px;gap:30px;
+  }
+  #map{height:500px;border-radius:var(--radius);box-shadow:var(--shadow);z-index:1}
+  .tracking-panel{
+    background:var(--light);color:var(--dark);padding:25px;border-radius:var(--radius);
+  }
+  [data-theme="dark"] .tracking-panel{background:#1e1e1e;color:#fff}
+  .tracking-panel h3{margin-bottom:20px;color:var(--primary)}
+  .truck-item{
+    display:flex;align-items:center;gap:15px;padding:15px;
+    background:rgba(255,193,7,.1);border-radius:8px;margin-bottom:10px;
+    cursor:pointer;transition:var(--transition);
+  }
+  .truck-item:hover{transform:translateX(5px);background:rgba(255,193,7,.2)}
+  .truck-item.active{border:2px solid var(--primary)}
+  .truck-icon{font-size:2rem}
+  .truck-info h4{font-size:1rem;margin-bottom:3px}
+  .truck-info p{font-size:.85rem;color:var(--gray)}
+  .status-badge{display:inline-block;padding:3px 10px;border-radius:50px;font-size:.75rem;font-weight:bold}
+  .status-available{background:var(--success);color:#fff}
+  .status-busy{background:var(--danger);color:#fff}
+  
+  /* RESERVA */
+  .booking-form{
+    max-width:800px;margin:0 auto;background:var(--dark-2);
+    padding:50px;border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  [data-theme="dark"] .booking-form{background:#1e1e1e;color:#fff}
+  .booking-form h3{color:var(--primary);margin-bottom:25px;text-align:center;font-size:1.8rem}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .booking-form .form-group label{color:var(--dark)}
+  [data-theme="dark"] .booking-form .form-group label{color:#fff}
+  .booking-form .form-group input,.booking-form .form-group select,.booking-form .form-group textarea{
+    background:var(--light);color:var(--dark);border:2px solid #ddd;
+  }
+  [data-theme="dark"] .booking-form .form-group input,
+  [data-theme="dark"] .booking-form .form-group select,
+  [data-theme="dark"] .booking-form .form-group textarea{
+    background:#2a2a2a;color:#fff;border-color:#444;
+  }
+  
+  /* TESTIMONIOS */
+  .testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px;max-width:1200px;margin:0 auto}
+  .testimonial{
+    background:var(--dark-2);padding:30px;border-radius:var(--radius);
+    box-shadow:var(--shadow);transition:var(--transition);position:relative;
+    overflow:hidden;
+  }
+  [data-theme="dark"] .testimonial{background:#1e1e1e;color:#fff}
+  .testimonial:hover{transform:translateY(-5px)}
+  .testimonial::before{
+    content:'"';position:absolute;top:-20px;left:20px;font-size:6rem;
+    color:var(--primary);font-family:Georgia,serif;line-height:1;opacity:.3;
+  }
+  .testimonial-text{font-style:italic;line-height:1.7;margin-bottom:20px;color:var(--gray);position:relative;z-index:2}
+  .testimonial-author{display:flex;align-items:center;gap:15px}
+  .author-avatar{
+    width:55px;height:55px;border-radius:50%;overflow:hidden;
+    border:3px solid var(--primary);flex-shrink:0;
+  }
+  .author-avatar img{width:100%;height:100%;object-fit:cover}
+  .author-info h4{font-size:1rem}
+  .stars{color:var(--primary);margin-top:3px}
+  
+  /* FAQ */
+  .faq-container{max-width:800px;margin:0 auto}
+  .faq-item{
+    background:var(--dark-2);margin-bottom:15px;border-radius:var(--radius);
+    overflow:hidden;transition:var(--transition);
+  }
+  [data-theme="dark"] .faq-item{background:#1e1e1e;color:#fff}
+  .faq-question{
+    padding:20px;cursor:pointer;display:flex;justify-content:space-between;
+    align-items:center;font-weight:600;transition:var(--transition);
+  }
+  .faq-question:hover{background:rgba(255,193,7,.1)}
+  .faq-question .icon{color:var(--primary);transition:var(--transition);font-size:1.3rem}
+  .faq-item.active .faq-question .icon{transform:rotate(45deg)}
+  .faq-answer{
+    max-height:0;overflow:hidden;transition:max-height .4s ease;
+    padding:0 20px;color:var(--gray);line-height:1.6;
+  }
+  .faq-item.active .faq-answer{max-height:300px;padding:0 20px 20px}
+  
+  /* FOOTER */
+  footer{
+    background:var(--dark);color:#fff;padding:60px 5% 20px;
+    position:relative;overflow:hidden;
+  }
+  footer::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:100%;
+    background:url('https://images.unsplash.com/photo-1575508636-686bfe6e5aed?w=1600&q=60') center/cover;
+    opacity:.05;pointer-events:none;
+  }
+  .footer-grid{
+    display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;
+    max-width:1200px;margin:0 auto 40px;position:relative;z-index:2;
+  }
+  .footer-col h4{color:var(--primary);margin-bottom:20px;font-size:1.1rem}
+  .footer-col p,.footer-col a{color:#ccc;text-decoration:none;line-height:2;display:block;transition:var(--transition)}
+  .footer-col a:hover{color:var(--primary);padding-left:5px}
+  .social-links{display:flex;gap:15px;margin-top:20px}
+  .social-links a{
+    width:40px;height:40px;background:rgba(255,255,255,.1);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  }
+  .social-links a:hover{background:var(--primary);color:var(--dark);padding-left:0}
+  .footer-bottom{
+    text-align:center;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);
+    color:#888;font-size:.9rem;position:relative;z-index:2;
+  }
+  
+  /* CHAT FLOTANTE */
+  .chat-widget{position:fixed;bottom:30px;right:30px;z-index:999}
+  .chat-button{
+    width:60px;height:60px;border-radius:50%;background:var(--primary);
+    border:none;cursor:pointer;font-size:1.8rem;box-shadow:0 5px 20px rgba(255,193,7,.4);
+    transition:var(--transition);animation:float 3s ease-in-out infinite;
+  }
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .chat-button:hover{transform:scale(1.1)}
+  .chat-window{
+    position:absolute;bottom:80px;right:0;width:350px;height:500px;
+    background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
+    display:none;flex-direction:column;overflow:hidden;
+  }
+  .chat-window.active{display:flex;animation:slideUp .3s ease}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .chat-header{
+    background:var(--dark);color:#fff;padding:15px 20px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .chat-header h4{color:var(--primary)}
+  .chat-close{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer}
+  .chat-messages{flex:1;padding:15px;overflow-y:auto;background:#f9f9f9}
+  .chat-message{
+    margin-bottom:12px;padding:10px 15px;border-radius:15px;max-width:80%;
+    font-size:.9rem;line-height:1.4;animation:fadeIn .3s ease;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .chat-message.bot{background:#e9ecef;color:#333;border-bottom-left-radius:3px}
+  .chat-message.user{background:var(--primary);color:var(--dark);margin-left:auto;border-bottom-right-radius:3px}
+  .chat-input{display:flex;padding:10px;border-top:1px solid #eee;background:#fff}
+  .chat-input input{flex:1;padding:10px 15px;border:1px solid #ddd;border-radius:20px;outline:none;font-size:.9rem}
+  .chat-input button{background:var(--primary);border:none;padding:10px 20px;border-radius:20px;cursor:pointer;margin-left:8px;font-weight:bold}
+  
+  /* MODAL */
+  .modal{
+    display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal.active{display:flex;animation:fadeIn .3s ease}
+  .modal-content{
+    background:var(--light);color:var(--dark);padding:40px;border-radius:var(--radius);
+    max-width:500px;width:100%;text-align:center;position:relative;
+  }
+  .modal-close{position:absolute;top:15px;right:15px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--gray)}
+  .modal-icon{font-size:4rem;color:var(--success);margin-bottom:20px}
+  
+  /* NOTIFICACIONES */
+  .notification{
+    position:fixed;top:100px;right:30px;background:var(--success);color:#fff;
+    padding:15px 25px;border-radius:8px;box-shadow:var(--shadow);z-index:3000;
+    transform:translateX(400px);transition:var(--transition);
+  }
+  .notification.show{transform:translateX(0)}
+  
+  /* RESPONSIVE */
+  @media(max-width:968px){
+    nav ul{
+      position:fixed;top:70px;right:-100%;width:250px;height:100vh;
+      background:var(--dark);flex-direction:column;padding:30px;transition:var(--transition);
+    }
+    nav ul.active{right:0}
+    .menu-toggle{display:block}
+    .hero h1{font-size:2.3rem}
+    .calc-grid,.map-container,.form-row,.about-grid{grid-template-columns:1fr}
+    .about-images{height:400px;margin-bottom:30px}
+    .footer-grid{grid-template-columns:1fr 1fr}
+    .chat-window{width:calc(100vw - 40px);right:-10px}
+    section{padding:60px 5%}
+    .gallery-item.large{grid-column:span 1;grid-row:span 1;height:250px}
+  }
+  @media(max-width:500px){
+    .footer-grid{grid-template-columns:1fr}
+    .hero-stats{gap:20px}
+    .stat h3{font-size:1.8rem}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span>🚛</span>
+    <div>Grúas<span style="color:#fff">Express</span></div>
+  </div>
+  <nav>
+    <ul id="navMenu">
+      <li><a href="#inicio">Inicio</a></li>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#galeria">Galería</a></li>
+      <li><a href="#cotizador">Cotizador</a></li>
+      <li><a href="#rastreo">Rastreo</a></li>
+      <li><a href="#reserva">Reservar</a></li>
+    </ul>
+  </nav>
+  <div class="header-actions">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+    <a href="tel:+525512345678" class="btn btn-primary">📞 Emergencia</a>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="inicio">
+  <div class="hero-content">
+    <span class="hero-badge">⚡ DISPONIBLE 24/7</span>
+    <h1>Servicio de <span>Grúas</span> Profesional y Confiable</h1>
+    <p>Llegamos en menos de 30 minutos a cualquier punto de la ciudad. Rescate vehicular, transporte de maquinaria y asistencia en carretera las 24 horas.</p>
+    <div class="hero-buttons">
+      <a href="#reserva" class="btn btn-primary">🚨 Solicitar Grúa Ahora</a>
+      <a href="#cotizador" class="btn btn-outline">💰 Cotizar Servicio</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><h3 id="statYears">0</h3><p>Años de experiencia</p></div>
+      <div class="stat"><h3 id="statServices">0</h3><p>Servicios realizados</p></div>
+      <div class="stat"><h3 id="statMinutes">0</h3><p>Minutos promedio</p></div>
+      <div class="stat"><h3 id="statClients">0</h3><p>Clientes satisfechos</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS CON IMÁGENES -->
+<section id="servicios">
+  <div class="section-title">
+    <h2>Nuestros Servicios</h2>
+    <p>Soluciones integrales para todo tipo de emergencias vehiculares y transporte especializado</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card" onclick="selectService('auto',500)">
+      <div class="service-image">
+        <span class="service-badge">POPULAR</span>
+        <img src="https://images.unsplash.com/photo-1597007030739-6d2e7172ee6f?w=600&q=80" alt="Grúa para autos" loading="lazy">
+      </div>
+      <div class="service-content">
+        <div class="service-icon">🚗</div>
+        <h3>Grúa para Autos</h3>
+        <p>Transporte seguro de vehículos particulares con plataformas hidráulicas y equipo especializado.</p>
+        <div class="service-price">Desde $500 MXN</div>
+      </div>
+    </div>
+    <div class="service-card" onclick="selectService('moto',350)">
+      <div class="service-image">
+        <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600&q=80" alt="Grúa para motos" loading="lazy">
+      </div>
+      <div class="service-content">
+        <div class="service-icon">🏍️</div>
+        <h3>Grúa para Motos</h3>
+        <p>Servicio especializado para motocicletas con sistema de amarre seguro y protección total.</p>
+        <div class="service-price">Desde $350 MXN</div>
+      </div>
+    </div>
+    <div class="service-card" onclick="selectService('camioneta',800)">
+      <div class="service-image">
+        <span class="service-badge">NUEVO</span>
+        <img src="https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=600&q=80" alt="Camionetas y SUV" loading="lazy">
+      </div>
+      <div class="service-content">
+        <div class="service-icon">🚙</div>
+        <h3>Camionetas y SUV</h3>
+        <p>Grúas de mayor capacidad para vehículos 4x4, pickups y camionetas de gran tamaño.</p>
+        <div class="service-price">Desde $800 MXN</div>
+      </div>
+    </div>
+    <div class="service-card" onclick="selectService('pesada',2500)">
+      <div class="service-image">
+        <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80" alt="Vehículos pesados" loading="lazy">
+      </div>
+      <div class="service-content">
+        <div class="service-icon">🚚</div>
+        <h3>Vehículos Pesados</h3>
+        <p>Grúas de gran tonelaje para camiones, autobuses y vehículos de carga pesada.</p>
+        <div class="service-price">Desde $2,500 MXN</div>
+      </div>
+    </div>
+    <div class="service-card" onclick="selectService('maquinaria',5000)">
+      <div class="service-image">
+        <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80" alt="Maquinaria industrial" loading="lazy">
+      </div>
+      <div class="service-content">
+        <div class="service-icon">🏗️</div>
+        <h3>Maquinaria Industrial</h3>
+        <p>Transporte de maquinaria pesada, equipos industriales y material de construcción.</p>
+        <div class="service-price">Desde $5,000 MXN</div>
+      </div>
+    </div>
+    <div class="service-card" onclick="selectService('carretera',1500)">
+      <div class="service-image">
+        <span class="service-badge">24/7</span>
+        <img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80" alt="Asistencia en carretera" loading="lazy">
+      </div>
+      <div class="service-content">
+        <div class="service-icon">🛣️</div>
+        <h3>Asistencia en Carretera</h3>
+        <p>Servicio de emergencia en carreteras y autopistas las 24 horas del día.</p>
+        <div class="service-price">Desde $1,500 MXN</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOBRE NOSOTROS -->
+<section class="about-section" id="nosotros">
+  <div class="about-grid">
+    <div class="about-images">
+      <div class="about-img-main">
+        <img src="https://images.unsplash.com/photo-1586864387789-628af9feed72?w=800&q=80" alt="Equipo de grúas" loading="lazy">
+      </div>
+      <div class="about-img-secondary">
+        <img src="https://images.unsplash.com/photo-1632823471565-1ecdf5c6da77?w=600&q=80" alt="Taller mecánico" loading="lazy">
+      </div>
+      <div class="about-experience">
+        <h3>15+</h3>
+        <p>AÑOS DE<br>EXPERIENCIA</p>
+      </div>
+    </div>
+    <div class="about-text">
+      <h2>Más de una década <span>rescatando vehículos</span> en toda la ciudad</h2>
+      <p>En Grúas Express combinamos tecnología de punta con un equipo altamente capacitado para brindarte el mejor servicio de asistencia vehicular. Nuestra flota moderna y nuestro compromiso con la calidad nos han convertido en líderes del sector.</p>
+      <ul class="about-features">
+        <li>Flota moderna con más de 25 unidades equipadas</li>
+        <li>Personal certificado y con capacitación continua</li>
+        <li>Cobertura en toda la zona metropolitana</li>
+        <li>Seguro incluido en todos nuestros servicios</li>
+        <li>Atención personalizada las 24 horas</li>
+      </ul>
+      <a href="#reserva" class="btn btn-primary">Conoce más sobre nosotros</a>
+    </div>
+  </div>
+</section>
+
+<!-- GALERÍA -->
+<section id="galeria">
+  <div class="section-title">
+    <h2>Nuestros Trabajos</h2>
+    <p>Galería de algunos de los servicios realizados por nuestro equipo profesional</p>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-item large">
+      <img src="https://images.unsplash.com/photo-1591991731833-b4807cf7ef94?w=800&q=80" alt="Rescate vehicular" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Rescate en Autopista</h4>
+          <p>Servicio de emergencia 24/7</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1562141961-b5d1fe8a8_?w=600&q=80" alt="Trabajo nocturno" onerror="this.src='https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80'" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Servicio Nocturno</h4>
+          <p>Disponibilidad 24 horas</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Grúa en acción" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Transporte Especializado</h4>
+          <p>Vehículos de lujo</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80" alt="Taller mecánico" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Diagnóstico Profesional</h4>
+          <p>Equipo técnico certificado</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80" alt="Vehículo de lujo" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Transporte Premium</h4>
+          <p>Cuidado extremo</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&q=80" alt="Camioneta 4x4" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Rescate 4x4</h4>
+          <p>Terrenos difíciles</p>
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://images.unsplash.com/photo-1591522811280-a8759970b03f?w=600&q=80" alt="Grúa industrial" loading="lazy">
+      <div class="gallery-overlay">
+        <div>
+          <h4>Maquinaria Pesada</h4>
+          <p>Transporte industrial</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COTIZADOR -->
+<section id="cotizador" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a)">
+  <div class="section-title">
+    <h2 style="color:#fff">Cotizador Instantáneo</h2>
+    <p style="color:#ccc">Obtén una cotización precisa en segundos</p>
+  </div>
+  <div class="calculator">
+    <div class="calc-grid">
+      <div>
+        <div class="form-group">
+          <label>Tipo de Vehículo</label>
+          <select id="calcVehicle" onchange="calculateQuote()">
+            <option value="500">🚗 Auto / Compacto - $500 base</option>
+            <option value="350">🏍️ Motocicleta - $350 base</option>
+            <option value="800">🚙 Camioneta / SUV - $800 base</option>
+            <option value="2500">🚚 Vehículo Pesado - $2,500 base</option>
+            <option value="5000">🏗️ Maquinaria - $5,000 base</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Distancia (km)</label>
+          <input type="number" id="calcDistance" value="10" min="1" max="500" onchange="calculateQuote()">
+        </div>
+        <div class="form-group">
+          <label>Tipo de Servicio</label>
+          <select id="calcService" onchange="calculateQuote()">
+            <option value="1">Normal (diurno)</option>
+            <option value="1.3">Nocturno (+30%)</option>
+            <option value="1.5">Fin de semana (+50%)</option>
+            <option value="2">Emergencia (+100%)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Servicios Adicionales</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#fff">
+              <input type="checkbox" id="extraWinch" onchange="calculateQuote()"> Winche (+$300)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#fff">
+              <input type="checkbox" id="extraStorage" onchange="calculateQuote()"> Resguardo (+$200)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#fff">
+              <input type="checkbox" id="extraMechanic" onchange="calculateQuote()"> Mecánico (+$500)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#fff">
+              <input type="checkbox" id="extraTire" onchange="calculateQuote()"> Llanta (+$150)
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="quote-result">
+        <h3>💰 Tu Cotización</h3>
+        <div class="quote-price" id="quotePrice">$0 MXN</div>
+        <div class="quote-details" id="quoteDetails"></div>
+        <a href="#reserva" class="btn btn-primary" style="width:100%;justify-content:center">Reservar Ahora</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAPA DE RASTREO -->
+<section class="map-section" id="rastreo">
+  <div class="section-title">
+    <h2>Rastreo en Vivo</h2>
+    <p>Monitorea la ubicación de nuestras grúas en tiempo real</p>
+  </div>
+  <div class="map-container">
+    <div id="map"></div>
+    <div class="tracking-panel">
+      <h3>🚛 Flota Activa</h3>
+      <div id="truckList"></div>
+      <div style="margin-top:20px;padding:15px;background:rgba(255,193,7,.1);border-radius:8px">
+        <strong>📍 Tu ubicación</strong>
+        <p style="font-size:.85rem;color:var(--gray);margin-top:5px" id="userLocation">Detectando...</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESERVA -->
+<section id="reserva">
+  <div class="section-title">
+    <h2>Solicitar Servicio</h2>
+    <p>Completa el formulario y te contactaremos en menos de 5 minutos</p>
+  </div>
+  <form class="booking-form" onsubmit="submitBooking(event)">
+    <h3>📝 Datos de la Solicitud</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre Completo *</label>
+        <input type="text" id="bookName" required placeholder="Juan Pérez">
+      </div>
+      <div class="form-group">
+        <label>Teléfono *</label>
+        <input type="tel" id="bookPhone" required placeholder="55 1234 5678">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="bookEmail" placeholder="tu@email.com">
+      </div>
+      <div class="form-group">
+        <label>Tipo de Vehículo *</label>
+        <select id="bookVehicle" required>
+          <option value="">Seleccionar...</option>
+          <option>Auto / Compacto</option>
+          <option>Motocicleta</option>
+          <option>Camioneta / SUV</option>
+          <option>Vehículo Pesado</option>
+          <option>Maquinaria</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dirección de Recogida *</label>
+        <input type="text" id="bookPickup" required placeholder="Calle, número, colonia">
+      </div>
+      <div class="form-group">
+        <label>Dirección de Destino</label>
+        <input type="text" id="bookDropoff" placeholder="Opcional">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha y Hora *</label>
+        <input type="datetime-local" id="bookDate" required>
+      </div>
+      <div class="form-group">
+        <label>Prioridad</label>
+        <select id="bookPriority">
+          <option value="normal">Normal</option>
+          <option value="urgent">Urgente (+50%)</option>
+          <option value="emergency">Emergencia (+100%)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Descripción del problema</label>
+      <textarea id="bookNotes" rows="4" placeholder="Cuéntanos qué sucedió con tu vehículo..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:15px;font-size:1.1rem">
+      🚨 Enviar Solicitud
+    </button>
+  </form>
+</section>
+
+<!-- TESTIMONIOS CON AVATARES REALES -->
+<section style="background:var(--dark-2)">
+  <div class="section-title">
+    <h2>Lo que dicen nuestros clientes</h2>
+    <p>Miles de conductores confían en nosotros</p>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <p class="testimonial-text">Excelente servicio, llegaron en menos de 20 minutos cuando me quedé varado en la autopista. Muy profesionales y el precio fue justo.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80" alt="Carlos Ramírez">
+        </div>
+        <div class="author-info">
+          <h4>Carlos Ramírez</h4>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">Llamé a las 3am y en 15 minutos ya estaba la grúa en mi casa. Me sacaron de un apuro enorme. 100% recomendados.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">
+          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80" alt="María González">
+        </div>
+        <div class="author-info">
+          <h4>María González</h4>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">Transportaron mi maquinaria industrial sin ningún daño. El equipo es de primera y el personal muy capacitado. Volveré a contratarlos.</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">
+          <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80" alt="Jorge López">
+        </div>
+        <div class="author-info">
+          <h4>Jorge López</h4>
+          <div class="stars">★★★★★</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-title">
+    <h2>Preguntas Frecuentes</h2>
+    <p>Resolvemos tus dudas más comunes</p>
+  </div>
+  <div class="faq-container">
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>¿Cuál es el tiempo de respuesta?</span>
+        <span class="icon">+</span>
+      </div>
+      <div class="faq-answer">
+        <p>Nuestro tiempo promedio de respuesta es de 20-30 minutos en zona urbana. En carretera puede variar entre 45-60 minutos dependiendo de la ubicación.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>¿Trabajan las 24 horas?</span>
+        <span class="icon">+</span>
+      </div>
+      <div class="faq-answer">
+        <p>Sí, operamos los 365 días del año, las 24 horas del día. Contamos con turnos rotativos para garantizar atención inmediata en cualquier momento.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>¿Qué métodos de pago aceptan?</span>
+        <span class="icon">+</span>
+      </div>
+      <div class="faq-answer">
+        <p>Aceptamos efectivo, tarjetas de crédito/débito, transferencias bancarias y pagos mediante aplicaciones móviles. También trabajamos con aseguradoras.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>¿Mi vehículo estará asegurado durante el transporte?</span>
+        <span class="icon">+</span>
+      </div>
+      <div class="faq-answer">
+        <p>Absolutamente. Todos nuestros servicios incluyen seguro de responsabilidad civil que cubre cualquier daño durante el transporte. Tu tranquilidad es nuestra prioridad.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        <span>¿Puedo rastrear la grúa en tiempo real?</span>
+        <span class="icon">+</span>
+      </div>
+      <div class="faq-answer">
+        <p>Sí, una vez asignada tu grúa recibirás un enlace para rastrearla en tiempo real desde tu celular. También te enviaremos notificaciones de su progreso.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="logo" style="margin-bottom:20px"><span>🚛</span>GrúasExpress</div>
+      <p>Servicio profesional de grúas y asistencia vehicular las 24 horas. Tu tranquilidad en el camino es nuestra misión.</p>
+      <div class="social-links">
+        <a href="#" title="Facebook">📘</a>
+        <a href="#" title="Instagram">📷</a>
+        <a href="#" title="Twitter">🐦</a>
+        <a href="#" title="WhatsApp">💬</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Servicios</h4>
+      <a href="#">Grúa para Autos</a>
+      <a href="#">Vehículos Pesados</a>
+      <a href="#">Maquinaria Industrial</a>
+      <a href="#">Asistencia en Carretera</a>
+    </div>
+    <div class="footer-col">
+      <h4>Empresa</h4>
+      <a href="#">Sobre Nosotros</a>
+      <a href="#">Trabaja con Nosotros</a>
+      <a href="#">Blog</a>
+      <a href="#">Términos y Condiciones</a>
+    </div>
+    <div class="footer-col">
+      <h4>Contacto</h4>
+      <p>📞 +52 55 1234 5678</p>
+      <p>✉️ contacto@gruasexpress.com</p>
+      <p>📍 Av. Principal #123, CDMX</p>
+      <p>🕐 24/7 los 365 días</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 Grúas Express. Todos los derechos reservados. | Hecho con ❤️ para tu tranquilidad
+  </div>
+</footer>
+
+<!-- CHAT WIDGET -->
+<div class="chat-widget">
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-header">
+      <div>
+        <h4>💬 Asistente Virtual</h4>
+        <small style="color:#aaa">En línea</small>
+      </div>
+      <button class="chat-close" onclick="toggleChat()">×</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-message bot">¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Escribe tu mensaje..." onkeypress="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()">➤</button>
+    </div>
+  </div>
+  <button class="chat-button" onclick="toggleChat()">💬</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="successModal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-icon">✅</div>
+    <h2 style="margin-bottom:15px">¡Solicitud Enviada!</h2>
+    <p style="color:var(--gray);margin-bottom:20px" id="modalText">Nos pondremos en contacto contigo en menos de 5 minutos.</p>
+    <p style="font-weight:bold;color:var(--primary);margin-bottom:20px" id="modalCode"></p>
+    <button class="btn btn-primary" onclick="closeModal()">Entendido</button>
+  </div>
+</div>
+
+<!-- NOTIFICACIONES -->
+<div class="notification" id="notification"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ============ TEMA OSCURO ============
+function toggleTheme(){
+  const body=document.body;
+  const current=body.getAttribute('data-theme');
+  const newTheme=current==='dark'?'light':'dark';
+  body.setAttribute('data-theme',newTheme);
+  document.querySelector('.theme-toggle').textContent=newTheme==='dark'?'☀️':'🌙';
+  localStorage.setItem('theme',newTheme);
+}
+if(localStorage.getItem('theme')==='dark'){
+  document.body.setAttribute('data-theme','dark');
+  document.querySelector('.theme-toggle').textContent='☀️';
+}
+
+// ============ MENÚ MÓVIL ============
+function toggleMenu(){document.getElementById('navMenu').classList.toggle('active')}
+document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',()=>{
+  document.getElementById('navMenu').classList.remove('active');
+}));
+
+// ============ CONTADOR ANIMADO ============
+function animateCounter(id,target,suffix=''){
+  const el=document.getElementById(id);
+  let current=0;
+  const step=target/60;
+  const timer=setInterval(()=>{
+    current+=step;
+    if(current>=target){current=target;clearInterval(timer)}
+    el.textContent=Math.floor(current).toLocaleString()+suffix;
+  },30);
+}
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      animateCounter('statYears',15,'+');
+      animateCounter('statServices',25000,'+');
+      animateCounter('statMinutes',25);
+      animateCounter('statClients',18000,'+');
+      observer.disconnect();
+    }
+  });
+});
+observer.observe(document.querySelector('.hero-stats'));
+
+// ============ COTIZADOR ============
+function calculateQuote(){
+  const base=parseFloat(document.getElementById('calcVehicle').value);
+  const distance=parseInt(document.getElementById('calcDistance').value)||0;
+  const multiplier=parseFloat(document.getElementById('calcService').value);
+  const kmCost=distance*25;
+  let extras=0;
+  if(document.getElementById('extraWinch').checked)extras+=300;
+  if(document.getElementById('extraStorage').checked)extras+=200;
+  if(document.getElementById('extraMechanic').checked)extras+=500;
+  if(document.getElementById('extraTire').checked)extras+=150;
+  const subtotal=base+kmCost+extras;
+  const total=Math.round(subtotal*multiplier);
+  document.getElementById('quotePrice').textContent='$'+total.toLocaleString()+' MXN';
+  document.getElementById('quoteDetails').innerHTML=`
+    <div><span>Tarifa base:</span><span>$${base.toLocaleString()}</span></div>
+    <div><span>Distancia (${distance}km × $25):</span><span>$${kmCost.toLocaleString()}</span></div>
+    <div><span>Servicios extra:</span><span>$${extras.toLocaleString()}</span></div>
+    <div><span>Multiplicador:</span><span>×${multiplier}</span></div>
+    <div style="border-top:2px solid var(--primary);font-weight:bold;color:var(--primary);padding-top:10px">
+      <span>TOTAL:</span><span>$${total.toLocaleString()}</span>
+    </div>`;
+}
+function selectService(type,price){
+  document.getElementById('calcVehicle').value=price;
+  calculateQuote();
+  document.getElementById('cotizador').scrollIntoView({behavior:'smooth'});
+  showNotification('Servicio seleccionado: '+type);
+}
+calculateQuote();
+
+// ============ MAPA LEAFLET ============
+const map=L.map('map').setView([19.4326,-99.1332],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'© OpenStreetMap'
+}).addTo(map);
+
+const trucks=[
+  {id:1,name:'Grúa #01',lat:19.4326,lng:-99.1332,status:'available',icon:'🚛'},
+  {id:2,name:'Grúa #02',lat:19.4450,lng:-99.1500,status:'busy',icon:'🚚'},
+  {id:3,name:'Grúa #03',lat:19.4200,lng:-99.1200,status:'available',icon:'🚛'},
+  {id:4,name:'Grúa #04',lat:19.4500,lng:-99.1100,status:'busy',icon:'🚚'},
+  {id:5,name:'Grúa #05',lat:19.4150,lng:-99.1450,status:'available',icon:'🚛'}
+];
+const markers={};
+trucks.forEach(t=>{
+  const color=t.status==='available'?'#28a745':'#dc3545';
+  const icon=L.divIcon({
+    html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.3)">${t.icon}</div>`,
+    className:'',iconSize:[40,40],iconAnchor:[20,20]
+  });
+  const m=L.marker([t.lat,t.lng],{icon}).addTo(map);
+  m.bindPopup(`<b>${t.name}</b><br>Estado: ${t.status==='available'?'Disponible':'Ocupada'}<br>Última ubicación actualizada`);
+  markers[t.id]=m;
+});
+
+setInterval(()=>{
+  trucks.forEach(t=>{
+    if(t.status==='busy'){
+      t.lat+=(Math.random()-.5)*.002;
+      t.lng+=(Math.random()-.5)*.002;
+      markers[t.id].setLatLng([t.lat,t.lng]);
+    }
+  });
+},3000);
+
+const truckList=document.getElementById('truckList');
+trucks.forEach(t=>{
+  const div=document.createElement('div');
+  div.className='truck-item';
+  div.innerHTML=`
+    <div class="truck-icon">${t.icon}</div>
+    <div class="truck-info" style="flex:1">
+      <h4>${t.name}</h4>
+      <p><span class="status-badge status-${t.status}">${t.status==='available'?'Disponible':'Ocupada'}</span></p>
+    </div>`;
+  div.onclick=()=>{
+    document.querySelectorAll('.truck-item').forEach(i=>i.classList.remove('active'));
+    div.classList.add('active');
+    map.setView([t.lat,t.lng],15);
+    markers[t.id].openPopup();
+  };
+  truckList.appendChild(div);
+});
+
+if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude,longitude}=pos.coords;
+    L.marker([latitude,longitude],{
+      icon:L.divIcon({
+        html:'<div style="background:#FFC107;width:20px;height:20px;border-radius:50%;border:3px solid #1a1a1a;box-shadow:0 0 0 10px rgba(255,193,7,.3)"></div>',
+        className:'',iconSize:[20,20],iconAnchor:[10,10]
+      })
+    }).addTo(map).bindPopup('📍 Tu ubicación');
+    document.getElementById('userLocation').textContent=`Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`;
+  },()=>{
+    document.getElementById('userLocation').textContent='Permiso de ubicación denegado';
+  });
+}
+
+// ============ FORMULARIO ============
+function submitBooking(e){
+  e.preventDefault();
+  const code='GRU-'+Date.now().toString().slice(-6);
+  document.getElementById('modalCode').textContent='Código: '+code;
+  document.getElementById('modalText').textContent='Hemos recibido tu solicitud. Un operador te contactará al teléfono registrado en menos de 5 minutos.';
+  document.getElementById('successModal').classList.add('active');
+  e.target.reset();
+}
+function closeModal(){document.getElementById('successModal').classList.remove('active')}
+
+// ============ FAQ ============
+function toggleFaq(el){el.parentElement.classList.toggle('active')}
+
+// ============ CHAT ============
+function toggleChat(){document.getElementById('chatWindow').classList.toggle('active')}
+const chatResponses={
+  'hola':'¡Hola! 👋 ¿En qué puedo ayudarte? Puedo informarte sobre precios, tiempos de respuesta o servicios.',
+  'precio':'Nuestros precios inician desde $350 MXN para motos y $500 MXN para autos. Usa nuestro cotizador para un precio exacto 💰',
+  'tiempo':'Llegamos en promedio en 20-30 minutos en zona urbana 🚛',
+  'horario':'¡Trabajamos 24/7 los 365 días del año! Siempre hay una grúa disponible ⏰',
+  'pago':'Aceptamos efectivo, tarjetas, transferencias y pagos por app 💳',
+  'default':'Gracias por tu mensaje. Para atención inmediata llama al 📞 +52 55 1234 5678 o déjanos tus datos y te contactamos.'
+};
+function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  const messages=document.getElementById('chatMessages');
+  messages.innerHTML+=`<div class="chat-message user">${msg}</div>`;
+  input.value='';
+  messages.scrollTop=messages.scrollHeight;
+  setTimeout(()=>{
+    const lower=msg.toLowerCase();
+    let response=chatResponses.default;
+    for(const key in chatResponses){
+      if(lower.includes(key)){response=chatResponses[key];break}
+    }
+    messages.innerHTML+=`<div class="chat-message bot">${response}</div>`;
+    messages.scrollTop=messages.scrollHeight;
+  },800);
+}
+
+// ============ NOTIFICACIONES ============
+function showNotification(msg){
+  const n=document.getElementById('notification');
+  n.textContent=msg;
+  n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),3000);
+}
+
+window.addEventListener('scroll',()=>{
+  const header=document.querySelector('header');
+  header.style.padding=window.scrollY>50?'10px 5%':'15px 5%';
+});
+
+const now=new Date();
+now.setHours(now.getHours()+1);
+document.getElementById('bookDate').value=now.toISOString().slice(0,16);
+
+setTimeout(()=>showNotification('🚛 ¿Necesitas una grúa? ¡Llámanos!'),3000);
+
+// Animación de entrada para elementos al hacer scroll
+const scrollObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      entry.target.style.opacity='1';
+      entry.target.style.transform='translateY(0)';
+    }
+  });
+},{threshold:0.1});
+
+document.querySelectorAll('.service-card,.gallery-item,.testimonial,.faq-item').forEach(el=>{
+  el.style.opacity='0';
+  el.style.transform='translateY(30px)';
+  el.style.transition='opacity .6s ease, transform .6s ease';
+  scrollObserver.observe(el);
+});
+</script>
+</body>
+</html>
